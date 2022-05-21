@@ -1,4 +1,4 @@
-#%%
+
 import pandas as pd
 import pickle
 import os
@@ -19,8 +19,7 @@ class main(object):
         self.automl = None
     
     def __call__(self):
-        # se comenta para disponer de más features que no vienen en el pdf
-        #self.generate_csv_from_PDF_files(self.directory)
+        self.generate_csv_from_PDF_files(self.directory)
         self.csv_df = self._read_csv(self.directory)
         self.json_df = self._read_json(self.directory)
         df_together = pd.concat([self.csv_df, self.json_df], ignore_index=True, sort=False)
@@ -143,12 +142,12 @@ class main(object):
                         values.append(val.split(":")[1].strip().split("E+")[0])       
                 valuesForDict.append(values)
         
-        with open(directory + "data/train6PDFs.csv", "w") as f:
+        with open(directory + "data/PDFvalues.csv", "w") as f:
             writer = csv.writer(f)
             writer.writerow(keys)
             writer.writerows(valuesForDict)
         
-        with open(directory + "data/train6PDFs.csv", "r+") as f:
+        with open(directory + "data/PDFvalues.csv", "r+") as f:
             texto=f.read()
             f.truncate(0)
             f.write(texto.replace("\n\n","\n"))
