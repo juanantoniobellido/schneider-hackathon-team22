@@ -1,13 +1,11 @@
 #%%
-
 import pandas as pd
 import pickle
 import os
 import csv
 import pdfplumber
 from gama import GamaClassifier
-import numpy as np
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import log_loss, accuracy_score
 from sklearn.metrics import f1_score
@@ -21,10 +19,14 @@ class main(object):
         self.automl = None
     
     def __call__(self):
+        # se comenta para disponer de más features que no vienen en el pdf
+        #self.generate_csv_from_PDF_files(self.directory)
         self.csv_df = self._read_csv(self.directory)
         self.json_df = self._read_json(self.directory)
-        self.pdf_df = self._read_pdf(self.directory)
-        df_together = pd.concat([self.csv_df, self.json_df, self.pdf_df], ignore_index=True, sort=False)
+        df_together = pd.concat([self.csv_df, self.json_df], ignore_index=True, sort=False)
+        for column in ["countryName", "City", "pollutant"]:
+            le = LabelEncoder()
+            df_together[column] = le.fit_transform(df_together[column])
         self.X_train, self.X_test, self.y_train, self.y_test = self.data_preprocessing(df_together)
         self.challenge_GAMA_pipeline_train()
         
@@ -42,29 +44,16 @@ class main(object):
     
     
     def _read_json(self, directory):
-        json_df_list = [] 
-        for file in os.listdir(directory + 'data/' ):
+        json_df_list =[]
+        for file in os.listdir(directory+ "data/"):
             if file.endswith(".json"):
-                j_son_df = pd.read_json(directory  + 'data/' + file)
+                j_son_df = pd.read_json(directory+"data/" + file)
                 print(len(j_son_df))
                 json_df_list.append(j_son_df)
         final_json = pd.concat(json_df_list, ignore_index=True, sort=False)
         names_csv = list(self.csv_df.columns)                
         return final_json[names_csv]
     
-    def _read_pdf(self, directory):
-
-        df_list =[]
-        for file in os.listdir(directory +"Entrega/" ):
-            if file.endswith(".csv"):
-                if 'train' in file:
-                    try:
-                        df = pd.read_csv(directory + file)
-                    except:
-                        df = pd.read_csv(directory + file, sep=";")
-                    df_list.append(df)
-        return pd.concat(df_list, ignore_index=True, sort=False)
-
     def data_preprocessing(self, df_raw):
         list_drop = ['FacilityInspireID',
                 'facilityName',
@@ -74,7 +63,6 @@ class main(object):
                 'EPRTRAnnexIMainActivityLabel',
                 'eprtrSectorName',
                 'CONTINENT']
-        ]
         
         df = df_raw.drop(list_drop, axis=1)
         print(df)
@@ -90,7 +78,7 @@ class main(object):
     def challenge_GAMA_pipeline_train(self):
         # Useless columns
 
-        automl = GamaClassifier(max_total_time=180, store="nothing")
+        automl = GamaClassifier(max_total_time=5400, store="nothing")
         print("Starting `fit` which will take roughly 3 minutes.")
         automl.fit(self.X_train, self.y_train)
     
@@ -155,12 +143,12 @@ class main(object):
                         values.append(val.split(":")[1].strip().split("E+")[0])       
                 valuesForDict.append(values)
         
-        with open(directory + "Entrega/train6PDFs.csv", "w") as f:
+        with open(directory + "data/train6PDFs.csv", "w") as f:
             writer = csv.writer(f)
             writer.writerow(keys)
             writer.writerows(valuesForDict)
         
-        with open(directory + "Entrega/train6PDFs.csv", "r+") as f:
+        with open(directory + "data/train6PDFs.csv", "r+") as f:
             texto=f.read()
             f.truncate(0)
             f.write(texto.replace("\n\n","\n"))
@@ -174,7 +162,7 @@ class main(object):
         df = pd.read_csv("data/test_x.csv") 
         dfTest = df.filter(columnsTest)   
 
-        predictions = automl.predict(dfTest)
+        predictions = self.automl.predict(dfTest)
 
         return predictions 
 
@@ -186,4 +174,3 @@ if __name__ == '__main__':
     model = challenge()
     automl = model.challenge_GAMA_pipeline_train(model.csv_df)
     automl.make_predictions()
-# %%
