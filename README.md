@@ -1,6 +1,6 @@
 # schneider-hackathon-team22
 
-Israel Campero Jurado - i.
+Israel Campero Jurado - i.campero.jurado@tue.nl
 
 Gregorio Bueno Bueno - gregoriobuenobueno@gmail.com
 
