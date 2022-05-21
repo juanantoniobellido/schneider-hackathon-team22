@@ -1,0 +1,3 @@
+http://schneiderapihack-env.eba-3ais9akk.us-east-2.elasticbeanstalk.com/first
+http://schneiderapihack-env.eba-3ais9akk.us-east-2.elasticbeanstalk.com/second
+http://schneiderapihack-env.eba-3ais9akk.us-east-2.elasticbeanstalk.com/third
